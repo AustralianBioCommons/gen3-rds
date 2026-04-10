@@ -1,0 +1,100 @@
+name: Deploy RDS reusable
+
+on:
+  workflow_call:
+    inputs:
+      config_path:
+        required: true
+        type: string
+      github_environment:
+        required: true
+        type: string
+      aws_region:
+        required: false
+        type: string
+        default: ap-southeast-2
+      role_to_assume:
+        required: true
+        type: string
+      stack_selector:
+        required: false
+        type: string
+        default: --all
+      caller_ref:
+        required: false
+        type: string
+        default: ""
+    secrets: {}
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.github_environment }}
+
+    steps:
+      - name: Checkout caller repo
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ github.repository }}
+          ref: ${{ inputs.caller_ref != '' && inputs.caller_ref || github.ref }}
+          path: caller
+
+      - name: Checkout shared RDS repo
+        uses: actions/checkout@v6
+        with:
+          repository: AustralianBioCommons/gen3-rds
+          ref: main
+          path: rds
+
+      - name: Configure AWS credentials with OIDC
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ inputs.role_to_assume }}
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: Resolve AWS account id
+        id: aws_identity
+        run: |
+          echo "account_id=$(aws sts get-caller-identity --query Account --output text)" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Build runtime config
+        env:
+          CONFIG_PATH: caller/${{ inputs.config_path }}
+          AWS_ACCOUNT_ID: ${{ steps.aws_identity.outputs.account_id }}
+          AWS_REGION: ${{ inputs.aws_region }}
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const config = JSON.parse(fs.readFileSync(process.env.CONFIG_PATH, 'utf8'));
+          for (const [key, env] of Object.entries(config.environments || {})) {
+            if (!env.account || env.account === '__ACCOUNT_ID__') env.account = process.env.AWS_ACCOUNT_ID;
+            if (!env.region) env.region = process.env.AWS_REGION;
+            config.environments[key] = env;
+          }
+          fs.writeFileSync('rds/config.runtime.json', JSON.stringify(config, null, 2));
+          NODE
+
+      - name: Install dependencies
+        working-directory: rds
+        run: npm ci
+
+      - name: CDK synth
+        working-directory: rds
+        run: npx cdk synth -c config=./config.runtime.json
+
+      - name: CDK deploy
+        working-directory: rds
+        run: |
+          npx cdk deploy ${{ inputs.stack_selector }} \
+            --require-approval never \
+            -c config=./config.runtime.json

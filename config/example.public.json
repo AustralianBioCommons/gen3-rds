@@ -1,0 +1,80 @@
+{
+  "project": "sample",
+  "application": "gen3",
+  "owner": "Platform",
+  "naming": {
+    "namePrefix": "sample-gen3",
+    "ssmPrefix": "/platform",
+    "secretPrefix": "platform"
+  },
+  "environments": {
+    "uat": {
+      "name": "uat",
+      "account": "__ACCOUNT_ID__",
+      "region": "ap-southeast-2"
+    },
+    "prod": {
+      "name": "prod",
+      "account": "__ACCOUNT_ID__",
+      "region": "ap-southeast-2"
+    }
+  },
+  "stages": [
+    {
+      "id": "SampleUat",
+      "stageName": "UAT",
+      "envKey": "uat",
+      "networkLookup": {
+        "vpcIdSsmPath": "/platform/sample/gen3/uat/vpc-id",
+        "subnetIdsSsmPath": "/platform/sample/gen3/uat/private-subnet-ids"
+      },
+      "rds": {
+        "clusters": [
+          {
+            "name": "app",
+            "databaseName": "app",
+            "engineVersion": "16.4",
+            "serverlessV2MinCapacity": 0.5,
+            "serverlessV2MaxCapacity": 4,
+            "backupRetentionDays": 30,
+            "removalPolicy": "RETAIN",
+            "ingressCidrs": ["10.13.0.0/16"]
+          }
+        ]
+      }
+    },
+    {
+      "id": "SampleProd",
+      "stageName": "PROD",
+      "envKey": "prod",
+      "networkLookup": {
+        "vpcIdSsmPath": "/platform/sample/gen3/prod/vpc-id",
+        "subnetIdsSsmPath": "/platform/sample/gen3/prod/private-subnet-ids"
+      },
+      "rds": {
+        "clusters": [
+          {
+            "name": "app",
+            "databaseName": "app",
+            "engineVersion": "16.4",
+            "serverlessV2MinCapacity": 1,
+            "serverlessV2MaxCapacity": 8,
+            "backupRetentionDays": 30,
+            "removalPolicy": "RETAIN",
+            "ingressCidrs": ["10.2.0.0/16"]
+          },
+          {
+            "name": "airflow",
+            "databaseName": "airflow",
+            "engineVersion": "16.4",
+            "serverlessV2MinCapacity": 0.5,
+            "serverlessV2MaxCapacity": 4,
+            "backupRetentionDays": 30,
+            "removalPolicy": "RETAIN",
+            "ingressCidrs": ["10.2.0.0/16"]
+          }
+        ]
+      }
+    }
+  ]
+}
