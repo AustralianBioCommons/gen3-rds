@@ -13,6 +13,8 @@ function resolveAuroraPostgresVersion(version: string): rds.AuroraPostgresEngine
       return rds.AuroraPostgresEngineVersion.VER_15_8;
     case "16.4":
       return rds.AuroraPostgresEngineVersion.VER_16_4;
+    case "16.8":
+      return rds.AuroraPostgresEngineVersion.VER_16_8;
     default:
       throw new Error(`Unsupported Aurora PostgreSQL version: ${version}`);
   }
