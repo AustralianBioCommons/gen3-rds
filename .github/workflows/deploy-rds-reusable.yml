@@ -72,16 +72,33 @@ jobs:
           CONFIG_PATH: caller/${{ inputs.config_path }}
           AWS_ACCOUNT_ID: ${{ steps.aws_identity.outputs.account_id }}
           AWS_REGION: ${{ inputs.aws_region }}
+          TARGET_ENV: ${{ inputs.github_environment }}
         run: |
           node <<'NODE'
           const fs = require('fs');
+
           const config = JSON.parse(fs.readFileSync(process.env.CONFIG_PATH, 'utf8'));
+
           for (const [key, env] of Object.entries(config.environments || {})) {
-            if (!env.account || env.account === '__ACCOUNT_ID__') env.account = process.env.AWS_ACCOUNT_ID;
-            if (!env.region) env.region = process.env.AWS_REGION;
+            if (!env.account || env.account === '__ACCOUNT_ID__') {
+              env.account = process.env.AWS_ACCOUNT_ID;
+            }
+            if (!env.region) {
+              env.region = process.env.AWS_REGION;
+            }
             config.environments[key] = env;
           }
+
+          config.stages = (config.stages || []).filter(
+            (stage) => stage.envKey === process.env.TARGET_ENV
+          );
+
+          if (config.stages.length === 0) {
+            throw new Error(`No stages found for envKey='${process.env.TARGET_ENV}'`);
+          }
+
           fs.writeFileSync('rds/config.runtime.json', JSON.stringify(config, null, 2));
+          console.log(`Wrote rds/config.runtime.json with ${config.stages.length} stage(s)`);
           NODE
 
       - name: Install dependencies
