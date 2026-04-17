@@ -38,7 +38,8 @@
             "serverlessV2MaxCapacity": 4,
             "backupRetentionDays": 30,
             "removalPolicy": "RETAIN",
-            "ingressCidrs": ["10.13.0.0/16"]
+            "ingressCidrs": ["10.13.0.0/16"],
+            "forceSSL": false
           }
         ]
       }
@@ -61,7 +62,8 @@
             "serverlessV2MaxCapacity": 8,
             "backupRetentionDays": 30,
             "removalPolicy": "RETAIN",
-            "ingressCidrs": ["10.2.0.0/16"]
+            "ingressCidrs": ["10.2.0.0/16"],
+            "forceSSL": true
           },
           {
             "name": "airflow",
@@ -71,7 +73,8 @@
             "serverlessV2MaxCapacity": 4,
             "backupRetentionDays": 30,
             "removalPolicy": "RETAIN",
-            "ingressCidrs": ["10.2.0.0/16"]
+            "ingressCidrs": ["10.2.0.0/16"],
+            "forceSSL": true
           }
         ]
       }

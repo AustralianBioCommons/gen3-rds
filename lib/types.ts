@@ -51,6 +51,7 @@ export interface ClusterConfig {
   ingressCidrs?: string[];
   ingressSecurityGroupIds?: string[];
   parameterGroupFamily?: "aurora-postgresql14" | "aurora-postgresql15" | "aurora-postgresql16";
+  forceSSL?: boolean; // defaults to true in stack if omitted
 }
 
 export interface ResolvedStageConfig {
@@ -75,7 +76,7 @@ export interface RequiredClusterConfig {
   ingressCidrs: string[];
   ingressSecurityGroupIds: string[];
   parameterGroupFamily: "aurora-postgresql14" | "aurora-postgresql15" | "aurora-postgresql16";
-  forceSSL?: boolean; // defaults to true in stack if omitted
+  forceSSL?: boolean; // Optional here, but will be defaulted to true in stack if not provided  
 }
 
 export interface BaseNamingProps {

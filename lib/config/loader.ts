@@ -45,8 +45,8 @@ function resolveCluster(cluster: ClusterConfig): RequiredClusterConfig {
   const engineVersion = cluster.engineVersion ?? "16.4";
   const parameterGroupFamily = cluster.parameterGroupFamily ?? (
     engineVersion.startsWith("16") ? "aurora-postgresql16" :
-    engineVersion.startsWith("15") ? "aurora-postgresql15" :
-    "aurora-postgresql14"
+      engineVersion.startsWith("15") ? "aurora-postgresql15" :
+        "aurora-postgresql14"
   );
 
   return {
@@ -61,6 +61,8 @@ function resolveCluster(cluster: ClusterConfig): RequiredClusterConfig {
     ingressCidrs: cluster.ingressCidrs ?? [],
     ingressSecurityGroupIds: cluster.ingressSecurityGroupIds ?? [],
     parameterGroupFamily,
+    forceSSL: cluster.forceSSL ?? true
+
   };
 }
 
