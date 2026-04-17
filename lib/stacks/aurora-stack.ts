@@ -62,7 +62,7 @@ export class AuroraPostgresStack extends cdk.Stack {
     const parameterGroup = new rds.ParameterGroup(this, "DbParameterGroup", {
       engine: rds.DatabaseClusterEngine.auroraPostgres({ version: engineVersion }),
       parameters: {
-        "rds.force_ssl": "1",
+        "rds.force_ssl": props.cluster.forceSSL === false ? "0" : "1",
       },
     });
 
